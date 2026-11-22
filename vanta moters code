@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VANTA GT — Precision Card System</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --obsidian:#08090B; --stage:#0C0E11; --graphite:#14171C; --panel:#171B21; --panel2:#1D2229;
+  --titanium:#8B929D; --silver:#CBD1D9; --white:#F1F3F6; --muted:#9AA2AD; --dim:#6B737E;
+  --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14);
+  --red:#C8102E; --red-d:#8E0B20; --blue:#2E5BFF; --gun:#242A32;
+  --paint:#0D0E10; --paint-hi:rgba(255,255,255,.22);
+  --r:18px; --r-sm:12px;
+  --shadow:0 30px 60px -12px rgba(0,0,0,.7),0 8px 18px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--obsidian); color:var(--white);
+  font-family:'Inter',system-ui,sans-serif; -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+.font-disp{font-family:'Inter Tight',sans-serif}
+.mono{font-family:'JetBrains Mono',monospace}
+.wrap{max-width:1320px;margin:0 auto;padding:0 24px}
+/* STUDIO ENVIRONMENT */
+.stage-bg{
+  position:fixed;inset:0;z-index:-3;
+  background:
+    radial-gradient(1100px 520px at 50% -80px, rgba(255,255,255,.10), transparent 60%),
+    radial-gradient(900px 500px at 15% 10%, rgba(120,140,170,.10), transparent 60%),
+    radial-gradient(900px 600px at 85% 15%, rgba(200,16,46,.07), transparent 60%),
+    linear-gradient(180deg,#13161B 0%, #0A0C0E 28%, #060708 60%, #030304 100%);
+}
+.stage-floor{
+  position:fixed;left:0;right:0;bottom:0;height:42vh;z-index:-2;pointer-events:none;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(255,255,255,.035) 18%, rgba(255,255,255,.02) 22%, transparent 35%),
+    radial-gradient(80% 90% at 50% 0%, rgba(255,255,255,.06), transparent 70%);
+  border-top:1px solid rgba(255,255,255,.06);
+}
+.stage-floor:after{
+  content:"";position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size:64px 64px; mask-image:linear-gradient(180deg,black,transparent 80%);opacity:.5;
+}
+.grain{
+  position:fixed;inset:0;z-index:50;pointer-events:none;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* TOP BAR */
+.topbar{
+  position:sticky;top:0;z-index:40;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  background:linear-gradient(180deg, rgba(18,21,26,.92), rgba(10,12,15,.78));
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.topbar:before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent)}
+.machined-btn{
+  background:linear-gradient(180deg,#3A4049 0%, #23282F 12%, #171B21 50%, #101318 100%);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25), inset 0 -1px 0 rgba(0,0,0,.6), 0 6px 14px rgba(0,0,0,.5);
+  position:relative;overflow:hidden;
+}
+.machined-btn:after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px);
+}
+/* CARD BASE — PHYSICAL OBJECT */
+.p-card{
+  position:relative;border-radius:var(--r);
+  background:linear-gradient(180deg,#22262E 0%, #1A1E24 6%, #14171C 22%, #101318 100%);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    inset 0 -1px 0 rgba(0,0,0,.7),
+    inset 1px 0 0 rgba(255,255,255,.04),
+    inset -1px 0 0 rgba(0,0,0,.4),
+    var(--shadow);
+  overflow:hidden;
+}
+.p-card:before{ /* thickness bottom edge */
+  content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,0,0,.9),transparent);pointer-events:none;
+}
+.softbox{
+  position:absolute;top:0;left:5%;right:5%;height:78px;pointer-events:none;z-index:3;
+  background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.04) 60%, transparent);
+  filter:blur(.3px); border-radius:0 0 60px 60px / 0 0 30px 30px;
+}
+.softbox:after{
+  content:"";position:absolute;top:0;left:18%;right:18%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);
+}
+.contact{position:relative}
+.contact:after{
+  content:"";position:absolute;left:6%;right:6%;bottom:-14px;height:22px;z-index:-1;
+  background:radial-gradient(50% 100% at 50% 0%, rgba(0,0,0,.75), transparent 70%);
+  filter:blur(8px);pointer-events:none;
+}
+/* CARBON 2x2 TWILL */
+.carbon{
+  background-color:#0B0D10;
+  background-image:
+    linear-gradient(135deg, rgba(255,255,255,.09) 0%, transparent 35%),
+    repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 2px, rgba(0,0,0,.55) 2px 6px, rgba(45,50,58,.9) 6px 10px, rgba(0,0,0,.6) 10px 12px),
+    repeating-linear-gradient(-45deg, rgba(255,255,255,.05) 0 2px, rgba(0,0,0,.5) 2px 6px, rgba(35,39,46,.9) 6px 10px, rgba(0,0,0,.6) 10px 12px);
+  background-size:100% 100%, 14px 14px, 14px 14px;
+  background-blend-mode:screen, normal, normal;
+}
+.carbon-clear{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(115deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.03) 18%, transparent 32%),
+    linear-gradient(180deg, rgba(255,255,255,.10), transparent 28%),
+    radial-gradient(600px 200px at 70% 110%, rgba(255,255,255,.06), transparent 60%);
+}
+.brushed{
+  background:linear-gradient(180deg,#484E58 0%, #2E333B 8%, #1D2127 45%, #14171C 100%);
+}
+.brushed-lines{
+  position:absolute;inset:0;pointer-events:none;opacity:.9;
+  background:repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 2px, rgba(0,0,0,.18) 2px 3px, transparent 3px 4px);
+}
+.leather-tex{
+  background-color:#151312;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='l'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.35 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23l)'/%3E%3C/svg%3E"),
+  radial-gradient(120% 100% at 50% 0%, #2A2522 0%, #1A1715 45%, #0F0E0D 100%);
+}
+.stitch{border:1px dashed rgba(200,16,46,.55); outline-offset:-6px}
+.glass{
+  background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.04) 30%, rgba(255,255,255,.02));
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 10px 30px rgba(0,0,0,.4);
+}
+/* IMAGE TREATMENT */
+.car-img{position:relative;overflow:hidden;background:#0A0C0E}
+.car-img img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.01);filter:contrast(1.06) saturate(.92) brightness(.96)}
+.car-img:after{ /* photographic grade + clearcoat */
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.14) 0%, transparent 18%),
+    linear-gradient(100deg, rgba(255,255,255,.10) 0%, transparent 22%),
+    linear-gradient(0deg, rgba(5,6,8,.78) 0%, rgba(5,6,8,.25) 38%, transparent 62%),
+    radial-gradient(120% 60% at 50% 110%, rgba(0,0,0,.5), transparent 60%);
+}
+.ground-shadow{
+  position:absolute;left:8%;right:8%;bottom:10px;height:28px;z-index:2;pointer-events:none;
+  background:radial-gradient(50% 100% at 50% 50%, rgba(0,0,0,.75), transparent 70%);filter:blur(6px);
+}
+/* TYPE */
+.eyebrow{font-size:10.5px;letter-spacing:.22em;font-weight:700;color:var(--muted);text-transform:uppercase}
+.h1{font-size:clamp(34px,5vw,62px);line-height:.95;letter-spacing:-.04em;font-weight:800}
+.h2{font-size:clamp(20px,2.2vw,28px);letter-spacing:-.02em;line-height:1.05;font-weight:750}
+.micro{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.spec-num{font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:-.02em}
+.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent)}
+.vdiv{width:1px;align-self:stretch;background:linear-gradient(180deg,transparent,rgba(255,255,255,.14),transparent)}
+.screw{width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #D6DBE2, #6B737E 45%, #1A1D22 80%);box-shadow:inset 0 -1px 1px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.15);position:relative}
+.screw:after{content:"";position:absolute;left:1px;right:1px;top:3px;height:1px;background:rgba(0,0,0,.7);transform:rotate(38deg)}
+.chip{font-size:10px;letter-spacing:.16em;font-weight:700;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.02));text-transform:uppercase}
+.dot{width:7px;height:7px;border-radius:99px;display:inline-block}
+.btn-primary{
+  background:linear-gradient(180deg,#E5203D 0%, var(--red) 35%, #7A0A1C 100%);
+  border:1px solid rgba(255,255,255,.22);border-top-color:rgba(255,255,255,.45);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4), inset 0 -2px 4px rgba(0,0,0,.45), 0 10px 22px rgba(200,16,46,.35), 0 2px 6px rgba(0,0,0,.5);
+  text-shadow:0 1px 0 rgba(0,0,0,.5);
+  transition:.2s;
+}
+.btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(1px);box-shadow:inset 0 2px 6px rgba(0,0,0,.6)}
+.btn-ghost{
+  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 6px 14px rgba(0,0,0,.4);
+  transition:.2s;
+}
+.btn-ghost:hover{background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.04));border-color:rgba(255,255,255,.24)}
+.paint-dot{width:30px;height:30px;border-radius:50%;cursor:pointer;border:1px solid rgba(255,255,255,.25);position:relative;transition:.2s;box-shadow:inset 0 2px 3px rgba(255,255,255,.4), inset 0 -3px 5px rgba(0,0,0,.6), 0 4px 10px rgba(0,0,0,.5)}
+.paint-dot.active{outline:2px solid #fff;outline-offset:3px}
+.selectable{cursor:pointer;transition:transform .25s, border-color .25s, box-shadow .25s}
+.selectable:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.22)}
+.selectable.selected{
+  border-color:rgba(255,255,255,.32);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 0 0 1px rgba(255,255,255,.12), 0 18px 40px rgba(0,0,0,.6), 0 0 24px rgba(200,16,46,.18);
+}
+.selectable.selected .sel-bar{opacity:1}
+.sel-bar{opacity:0;transition:.25s;height:3px;background:linear-gradient(90deg,var(--red),#FF5A6E,var(--red));box-shadow:0 0 12px rgba(200,16,46,.7)}
+.tilt{transform-style:preserve-3d;will-change:transform}
+.glare{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(500px 300px at var(--gx,50%) var(--gy,20%), rgba(255,255,255,.14), transparent 60%)}
+.tilt:hover .glare{opacity:1}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:99px;background:linear-gradient(90deg,var(--red) var(--fill,60%), rgba(255,255,255,.14) var(--fill,60%));outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #fff, #B9C0CA 40%, #4A5058 75%, #14161A 100%);border:1px solid rgba(255,255,255,.4);box-shadow:0 4px 10px rgba(0,0,0,.6);cursor:pointer}
+.toggle{width:44px;height:24px;border-radius:99px;background:#0D0F12;border:1px solid rgba(255,255,255,.14);position:relative;cursor:pointer;box-shadow:inset 0 2px 4px rgba(0,0,0,.8)}
+.toggle span{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:linear-gradient(180deg,#fff,#9AA2AD);transition:.25s;box-shadow:0 2px 6px rgba(0,0,0,.6)}
+.toggle.on{background:linear-gradient(180deg,#1A7A3A,#0F4D24);border-color:rgba(80,255,140,.3)}
+.toggle.on span{left:22px}
+.tab{padding:8px 14px;border-radius:10px;font-size:12px;font-weight:650;letter-spacing:.06em;color:var(--muted);cursor:pointer;border:1px solid transparent;transition:.2s;white-space:nowrap}
+.tab.active{color:#fff;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03));border-color:rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+.gauge-ring{background:conic-gradient(from -90deg, var(--red) 0%, #FF7A8A 12%, rgba(255,255,255,.12) 12%, rgba(255,255,255,.12) 100%);-webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 10px), black calc(100% - 9px));mask:radial-gradient(farthest-side, transparent calc(100% - 10px), black calc(100% - 9px))}
+.tick{position:absolute;top:6px;bottom:6px;left:1px;right:1px;border-left:1px solid rgba(255,255,255,.14);border-right:1px solid rgba(255,255,255,.14)}
+@media(max-width:1020px){.grid-hero{grid-template-columns:1fr!important}.grid-3{grid-template-columns:1fr 1fr!important}.grid-4{grid-template-columns:1fr 1fr!important}}
+@media(max-width:640px){.grid-3,.grid-4,.grid-2{grid-template-columns:1fr!important}.wrap{padding:0 16px}.h1{font-size:36px}}
+:focus-visible{outline:2px solid #fff;outline-offset:3px;border-radius:8px}
+#toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,80px);opacity:0;transition:.4s cubic-bezier(.2,.9,.3,1.2);z-index:100}
+#toast.show{transform:translate(-50%,0);opacity:1}
+</style>
+</head>
+<body>
+<div class="stage-bg"></div><div class="stage-floor"></div><div class="grain"></div>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="wrap flex items-center justify-between py-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center font-disp font-extrabold text-[18px] tracking-tighter" style="background:linear-gradient(180deg,#E5203D,#7A0A1C);border:1px solid rgba(255,255,255,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 8px 18px rgba(200,16,46,.4)">V</div>
+      <div>
+        <div class="font-disp font-800 font-extrabold tracking-tight leading-none text-[15px]">VANTA <span class="font-light text-white/70">MOTORS</span></div>
+        <div class="micro text-white/40" style="font-size:9px">Atelier · Precision Division</div>
+      </div>
+      <div class="hidden md:flex items-center gap-1 ml-8 p-1 rounded-xl" style="background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08)">
+        <div class="tab active">Showroom</div><div class="tab">Configure</div><div class="tab">Telemetry</div><div class="tab hidden lg:block">Heritage</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="hidden sm:flex items-center gap-2 text-[12px] text-white/60 mono"><span class="dot" style="background:#3DFF88;box-shadow:0 0 8px #3DFF88"></span> STUDIO A · 5600K</div>
+      <button onclick="toast('Concierge requested — advisor will contact you')" class="machined-btn hidden sm:block text-[12px] font-semibold tracking-wide px-4 py-2.5 rounded-xl">Book Test Drive</button>
+      <div class="w-9 h-9 rounded-full overflow-hidden" style="border:1px solid rgba(255,255,255,.2)"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop" class="w-full h-full object-cover" alt="driver"></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap pb-24">
+  <!-- INTRO -->
+  <div class="pt-10 pb-8 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+    <div class="max-w-[720px]">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="chip" style="border-color:rgba(200,16,46,.5);color:#FF8A98;background:linear-gradient(180deg,rgba(200,16,46,.22),rgba(200,16,46,.06))">● 2026 Atelier Collection</span>
+        <span class="eyebrow">Card System · V4.2</span>
+      </div>
+      <h1 class="h1 font-disp">Engineered like<br><span style="background:linear-gradient(180deg,#fff 20%,#9AA2AD 90%);-webkit-background-clip:text;-webkit-text-fill-color:transparent">a physical product.</span></h1>
+      <p class="text-white/60 mt-4 text-[15px] leading-relaxed max-w-[560px]">Every surface is built from real manufacturing logic — 2×2 carbon twill under clear-coat, brushed titanium, multilayer paint, stitched Nappa. Photographed under softbox lighting with true contact shadows.</p>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="flex gap-2.5" id="paintRow">
+        <div class="paint-dot active" data-name="Obsidian Black" data-code="PX-01" data-c1="#0D0E10" data-c2="#2A2E35" title="Obsidian Black" style="background:radial-gradient(circle at 30% 30%, #4A5058, #0D0E10 70%)"></div>
+        <div class="paint-dot" data-name="Graphite Grey" data-code="PX-04" data-c1="#3A3E45" data-c2="#15171B" title="Graphite Grey" style="background:radial-gradient(circle at 30% 30%, #8B929D, #2A2E35 70%)"></div>
+        <div class="paint-dot" data-name="Liquid Silver" data-code="PX-07" data-c1="#CBD1D9" data-c2="#7A828D" title="Liquid Silver" style="background:radial-gradient(circle at 30% 30%, #fff, #7A828D 70%)"></div>
+        <div class="paint-dot" data-name="Racing Rosso" data-code="PX-RS" data-c1="#E5203D" data-c2="#5A0A16" title="Racing Rosso" style="background:radial-gradient(circle at 30% 30%, #FF6A7E, #7A0A1C 70%)"></div>
+        <div class="paint-dot" data-name="Abyss Blue" data-code="PX-BL" data-c1="#2E5BFF" data-c2="#0A1440" title="Abyss Blue" style="background:radial-gradient(circle at 30% 30%, #7AA0FF, #0A1440 70%)"></div>
+      </div>
+      <div class="text-right"><div id="paintName" class="font-disp font-bold text-[14px]">Obsidian Black</div><div id="paintCode" class="mono text-[11px] text-white/50">PX-01 · 7-LAYER + CERAMIC</div></div>
+    </div>
+  </div>
+
+  <!-- 01 HERO -->
+  <div class="micro text-white/40 mb-3">01 — Hero Cards · Studio Photography</div>
+  <div class="grid grid-hero grid gap-5 contact" style="grid-template-columns:1.65fr .95fr">
+    <!-- MAIN HERO -->
+    <div class="p-card tilt selectable selected contact" id="heroCard" style="min-height:520px">
+      <div class="softbox"></div><div class="glare"></div>
+      <div class="car-img absolute inset-0">
+        <img id="heroImg" src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?q=80&w=1600&auto=format&fit=crop" alt="Vanta GT Black">
+        <div id="paintWash" class="absolute inset-0 pointer-events-none" style="background:linear-gradient(115deg, rgba(0,0,0,.35), transparent 55%), radial-gradient(80% 60% at 80% 20%, rgba(255,255,255,.10), transparent 60%);mix-blend-mode:overlay"></div>
+      </div>
+      <div class="ground-shadow"></div>
+      <div class="absolute top-0 left-0 right-0 p-5 md:p-7 flex justify-between items-start z-[5]">
+        <div class="flex gap-2">
+          <span class="chip glass !py-1.5">GT Black Series</span>
+          <span class="chip hidden sm:inline-block" style="background:rgba(0,0,0,.55);backdrop-filter:blur(8px)">1 OF 99</span>
+        </div>
+        <button onclick="event.stopPropagation();toast('Saved to garage')" class="glass w-10 h-10 rounded-full flex items-center justify-center hover:scale-105 transition">
+          <svg width="18" height="18" fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 21s-7-4.5-9-9c-1.2-2.7.5-6 3.5-6 2 0 3.5 1.2 5.5 3.5C13.5 7.2 15 6 17 6c3 0 4.7 3.3 3.5 6-2 4.5-8.5 9-8.5 9z"/></svg>
+        </button>
+      </div>
+      <div class="absolute bottom-0 left-0 right-0 z-[5]">
+        <div class="sel-bar"></div>
+        <div class="p-5 md:p-7 pt-16" style="background:linear-gradient(0deg, rgba(6,7,9,.92) 30%, transparent)">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-5">
+            <div>
+              <div class="eyebrow !text-white/50 mb-1.5">Vanta GT · Type 992 Atelier</div>
+              <h2 class="h2 font-disp !text-[34px] md:!text-[44px]">OBSIDIAN <span class="font-light text-white/70">GT-R</span></h2>
+              <div class="flex flex-wrap gap-x-5 gap-y-1 mt-2 mono text-[12px] text-white/70">
+                <span><b class="text-white">720</b> PS</span><span class="text-white/30">|</span>
+                <span><b class="text-white">3.1s</b> 0–100</span><span class="text-white/30">|</span>
+                <span><b class="text-white">340</b> KM/H</span><span class="text-white/30">|</span>
+                <span class="text-white/50">CARBON MONOCOQUE</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="text-right"><div class="mono text-[11px] text-white/50 line-through">€248,000</div><div class="spec-num text-[22px]">€231,900</div></div>
+              <button onclick="event.stopPropagation();toast('Configuration added — Obsidian GT-R')" class="btn-primary px-6 py-3.5 rounded-xl font-disp font-bold text-[13px] tracking-wide">CONFIGURE →</button>
+            </div>
+          </div>
+          <div class="divider my-4"></div>
+          <div class="flex items-center justify-between">
+            <div class="flex gap-5 mono text-[11px] text-white/55"><span>◉ TORQUE 800 Nm</span><span class="hidden sm:inline">◉ WEIGHT 1,480 KG</span><span class="hidden md:inline">◉ RWD · PDK 8</span></div>
+            <div class="flex items-center gap-2 text-[11px] text-white/60"><span class="dot" style="background:#3DFF88;box-shadow:0 0 8px #3DFF88"></span> In studio · Available</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDE STACK -->
+    <div class="flex flex-col gap-5">
+      <div class="p-card carbon contact flex-1 min-h-[260px] p-5 flex flex-col justify-between overflow-hidden">
+        <div class="carbon-clear"></div><div class="softbox" style="height:50px"></div>
+        <div class="relative z-[5] flex justify-between items-start">
+          <div class="screw"></div><div class="micro text-white/50">Chassis · PT-078</div><div class="screw"></div>
+        </div>
+        <div class="relative z-[5]">
+          <div class="eyebrow !text-white/60">2×2 Twill · Clear-Coat</div>
+          <div class="font-disp font-extrabold text-[22px] leading-tight mt-1">Carbon Monocoque<br><span class="text-white/50 font-medium text-[15px]">38 kg · Torsional 42,000 Nm/°</span></div>
+          <div class="mt-3 h-[6px] rounded-full overflow-hidden flex gap-[3px]">
+            <div class="flex-1 rounded-full" style="background:linear-gradient(180deg,#FF5A6E,#8E0B20)"></div>
+            <div class="flex-1 rounded-full bg-white/10"></div><div class="flex-1 rounded-full bg-white/10"></div><div class="flex-1 rounded-full bg-white/10"></div>
+          </div>
+          <div class="flex justify-between mono text-[10px] text-white/50 mt-1.5"><span>STIFFNESS 92%</span><span>AUTOCALVE 180°C</span></div>
+        </div>
+      </div>
+
+      <div class="p-card leather-tex p-5 contact" style="border-radius:var(--r)">
+        <div class="absolute inset-[10px] rounded-[12px] pointer-events-none stitch"></div>
+        <div class="flex gap-4 items-center">
+          <div class="w-[86px] h-[86px] rounded-xl overflow-hidden shrink-0" style="border:1px solid rgba(255,255,255,.18);box-shadow:0 8px 18px rgba(0,0,0,.5)"><img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=400&auto=format&fit=crop" class="w-full h-full object-cover" alt="interior"></div>
+          <div class="flex-1">
+            <div class="micro text-[#FF9AA6]">Nappa · Bordeaux</div>
+            <div class="font-disp font-bold text-[16px] leading-tight">Hand-stitched cockpit</div>
+            <div class="mono text-[11px] text-white/50 mt-1">12 HOURS · 1,284 STITCHES</div>
+          </div>
+          <div class="toggle on" onclick="this.classList.toggle('on');toast(this.classList.contains('on')?'Comfort stitching enabled':'Sport stitching enabled')"><span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 SELECTION -->
+  <div class="micro text-white/40 mt-10 mb-3 flex items-center justify-between">02 — Selection Cards · Vehicles / Track / Mode <span class="mono !tracking-normal normal-case text-white/30 hidden sm:block">click to select · single-choice group</span></div>
+  <div class="grid grid-3 grid gap-5" style="grid-template-columns:1fr 1fr 1fr" id="vehicleGroup">
+    <!-- vehicle cards injected pattern, 3 static -->
+    <div class="p-card selectable selected contact overflow-hidden" onclick="selectCard(this,'vehicleGroup','Vanta GT-R selected')">
+      <div class="sel-bar"></div><div class="softbox" style="height:44px"></div>
+      <div class="car-img h-[190px]"><img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?q=80&w=800&auto=format&fit=crop" alt="GT-R"><div class="ground-shadow"></div>
+        <div class="absolute top-3 left-3 z-[5] flex gap-2"><span class="chip" style="background:rgba(0,0,0,.6);backdrop-filter:blur(8px);font-size:9px">Selected</span></div>
+        <div class="absolute top-3 right-3 z-[5] w-7 h-7 rounded-full flex items-center justify-center font-bold text-[14px]" style="background:#fff;color:#000">✓</div>
+      </div>
+      <div class="p-4">
+        <div class="flex justify-between items-start"><div><div class="font-disp font-extrabold text-[16px]">GT-R COUPÉ</div><div class="mono text-[11px] text-white/50">3.8 TWIN-TURBO · RWD</div></div><div class="spec-num text-[15px]">720<span class="text-[11px] text-white/50">PS</span></div></div>
+        <div class="flex gap-2 mt-3"><span class="chip !text-[9px] flex-1 text-center">Track</span><span class="chip !text-[9px] flex-1 text-center !border-white/25 !text-white">Sport+</span><span class="chip !text-[9px] flex-1 text-center">Wet</span></div>
+      </div>
+    </div>
+    <div class="p-card selectable contact overflow-hidden" onclick="selectCard(this,'vehicleGroup','Vanta Spyder selected')">
+      <div class="sel-bar"></div><div class="softbox" style="height:44px"></div>
+      <div class="car-img h-[190px]"><img src="https://images.unsplash.com/photo-1542362567-b07e54358753?q=80&w=800&auto=format&fit=crop" alt="Spyder"><div class="ground-shadow"></div>
+        <div class="absolute top-3 left-3 z-[5]"><span class="chip" style="background:rgba(0,0,0,.6);backdrop-filter:blur(8px);font-size:9px">Spyder</span></div>
+      </div>
+      <div class="p-4">
+        <div class="flex justify-between items-start"><div><div class="font-disp font-extrabold text-[16px]">SPYDER ROADSTER</div><div class="mono text-[11px] text-white/50">4.0 NA FLAT-6 · 9,000 RPM</div></div><div class="spec-num text-[15px]">510<span class="text-[11px] text-white/50">PS</span></div></div>
+        <div class="flex gap-2 mt-3"><span class="chip !text-[9px] flex-1 text-center">Track</span><span class="chip !text-[9px] flex-1 text-center">Sport+</span><span class="chip !text-[9px] flex-1 text-center">Wet</span></div>
+      </div>
+    </div>
+    <div class="p-card selectable contact overflow-hidden opacity-90" onclick="selectCard(this,'vehicleGroup','Vanta E-Performance selected')">
+      <div class="sel-bar"></div><div class="softbox" style="height:44px"></div>
+      <div class="car-img h-[190px]"><img src="https://images.unsplash.com/photo-1617531653332-bd46c24f2068?q=80&w=800&auto=format&fit=crop" alt="E"><div class="ground-shadow"></div>
+        <div class="absolute top-3 left-3 z-[5]"><span class="chip" style="background:linear-gradient(180deg,#2E5BFF,#0A1E7A);font-size:9px;border-color:rgba(255,255,255,.3)">Hybrid · New</span></div>
+      </div>
+      <div class="p-4">
+        <div class="flex justify-between items-start"><div><div class="font-disp font-extrabold text-[16px]">E-PERFORMANCE</div><div class="mono text-[11px] text-white/50">V8 + E-MOTOR · AWD</div></div><div class="spec-num text-[15px]">843<span class="text-[11px] text-white/50">PS</span></div></div>
+        <div class="flex gap-2 mt-3"><span class="chip !text-[9px] flex-1 text-center">E-Mode</span><span class="chip !text-[9px] flex-1 text-center">Hybrid</span><span class="chip !text-[9px] flex-1 text-center">Qualify</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-2 grid gap-5 mt-5" style="grid-template-columns:1.2fr .8fr">
+    <div class="p-card brushed p-5 contact">
+      <div class="brushed-lines"></div><div class="softbox" style="height:36px"></div>
+      <div class="relative z-[5]">
+        <div class="flex items-center justify-between mb-4"><span class="micro text-white/60">Select Circuit</span><span class="mono text-[11px] text-white/40">LAP RECORD 1:28.44</span></div>
+        <div class="grid grid-cols-3 gap-3" id="trackGroup">
+          <div class="selectable selected rounded-xl p-3 text-center overflow-hidden" onclick="selectCard(this,'trackGroup','Nürburgring GP loaded')" style="background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.14)"><div class="sel-bar !h-[2px] rounded-full mb-2"></div><div class="font-disp font-bold text-[13px]">NÜRBURGRING</div><div class="mono text-[10px] text-white/50">5.14 KM · 15 T</div></div>
+          <div class="selectable rounded-xl p-3 text-center" onclick="selectCard(this,'trackGroup','Spa-Francorchamps loaded')" style="background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.10)"><div class="sel-bar !h-[2px] rounded-full mb-2"></div><div class="font-disp font-bold text-[13px]">SPA</div><div class="mono text-[10px] text-white/50">7.00 KM · 19 T</div></div>
+          <div class="selectable rounded-xl p-3 text-center" onclick="selectCard(this,'trackGroup','Laguna Seca loaded')" style="background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.10)"><div class="sel-bar !h-[2px] rounded-full mb-2"></div><div class="font-disp font-bold text-[13px]">LAGUNA SECA</div><div class="mono text-[10px] text-white/50">3.60 KM · 11 T</div></div>
+        </div>
+        <div class="mt-4 flex items-center gap-3">
+          <span class="mono text-[11px] text-white/50 whitespace-nowrap">GRIP 60%</span>
+          <input type="range" value="60" oninput="this.style.setProperty('--fill',this.value+'%')" style="--fill:60%">
+          <span class="mono text-[11px] text-white/50 whitespace-nowrap">SLICK · 28°C</span>
+        </div>
+      </div>
+    </div>
+    <div class="p-card p-5 contact flex items-center gap-4">
+      <div class="softbox" style="height:32px"></div>
+      <div class="relative w-[110px] h-[110px] shrink-0 mx-auto">
+        <div class="absolute inset-0 rounded-full gauge-ring"></div>
+        <div class="absolute inset-[10px] rounded-full flex flex-col items-center justify-center" style="background:radial-gradient(circle at 50% 30%, #2A2F37, #0E1115 70%);border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 2px 8px rgba(0,0,0,.8)">
+          <div class="spec-num text-[22px] leading-none"><span id="rpmVal">4,250</span></div><div class="micro !text-[8px] text-white/50">RPM · READY</div>
+        </div>
+      </div>
+      <div class="flex-1">
+        <div class="micro text-white/50">Action · Ignition</div>
+        <div class="font-disp font-extrabold text-[18px]">Engine Start / Stop</div>
+        <button id="startBtn" onclick="revEngine()" class="btn-primary w-full mt-3 py-3 rounded-xl font-disp font-bold text-[13px] tracking-widest">● HOLD TO START</button>
+        <div class="mono text-[10px] text-white/40 mt-2 text-center">TITANIUM EXHAUST · VALVES OPEN</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 STATS + PERFORMANCE -->
+  <div class="micro text-white/40 mt-10 mb-3">03 — Statistics & Performance Cards · Telemetry</div>
+  <div class="grid grid-4 grid gap-5" style="grid-template-columns:1fr 1fr 1fr 1fr">
+    <div class="p-card p-5 contact"><div class="softbox" style="height:28px"></div><div class="micro text-white/50">0–100 KM/H</div><div class="spec-num text-[36px] mt-1"><span class="count" data-to="3.1" data-dec="1">0.0</span><span class="text-[14px] text-white/40">s</span></div><div class="text-[12px] text-emerald-300 mt-1">▲ -0.2s vs prev. gen</div><div class="divider my-3"></div><div class="mono text-[10px] text-white/40">LAUNCH CONTROL · 4,500 RPM</div></div>
+    <div class="p-card p-5 contact"><div class="softbox" style="height:28px"></div><div class="micro text-white/50">Top Speed</div><div class="spec-num text-[36px] mt-1"><span class="count" data-to="340">0</span><span class="text-[14px] text-white/40"> km/h</span></div><div class="text-[12px] text-white/50 mt-1">7th gear · 7,200 rpm</div><div class="divider my-3"></div><div class="mono text-[10px] text-white/40">DRAG 0.32 Cd · DRS ACTIVE</div></div>
+    <div class="p-card p-5 contact" style="border-top:2px solid var(--red)"><div class="micro text-[#FF8A98]">Power / Weight</div><div class="spec-num text-[36px] mt-1"><span class="count" data-to="487">0</span><span class="text-[14px] text-white/40"> ps/t</span></div><div class="h-1.5 rounded-full bg-white/10 mt-2 overflow-hidden"><div class="h-full w-[87%] rounded-full" style="background:linear-gradient(90deg,#8E0B20,#FF4A5E)"></div></div><div class="mono text-[10px] text-white/40 mt-2">DRY 1,478 KG · DIN 1,580 KG</div></div>
+    <div class="p-card p-5 contact"><div class="softbox" style="height:28px"></div><div class="micro text-white/50">Braking 100–0</div><div class="spec-num text-[36px] mt-1"><span class="count" data-to="29.8" data-dec="1">0.0</span><span class="text-[14px] text-white/40"> m</span></div><div class="flex gap-1.5 mt-2"><div class="flex-1 h-1 rounded-full bg-emerald-400"></div><div class="flex-1 h-1 rounded-full bg-emerald-400"></div><div class="flex-1 h-1 rounded-full bg-emerald-400"></div><div class="flex-1 h-1 rounded-full bg-emerald-400"></div><div class="flex-1 h-1 rounded-full bg-white/15"></div></div><div class="mono text-[10px] text-white/40 mt-2">CARBON-CERAMIC 410 MM</div></div>
+  </div>
+
+  <div class="p-card mt-5 contact overflow-hidden">
+    <div class="softbox"></div>
+    <div class="grid lg:grid-cols-[1fr_380px]">
+      <div class="p-6 md:p-7">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div><div class="micro text-white/50">Dyno Sheet · Bench 04</div><div class="font-disp font-extrabold text-[20px]">Power & Torque Delivery</div></div>
+          <div class="flex gap-2"><span class="chip !text-[10px]" style="color:#FF8A98;border-color:rgba(200,16,46,.4)">— Power 720 PS</span><span class="chip !text-[10px]" style="color:#9AB6FF;border-color:rgba(46,91,255,.4)">— Torque 800 Nm</span></div>
+        </div>
+        <svg viewBox="0 0 560 220" class="w-full mt-4" style="background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);border:1px solid rgba(255,255,255,.08);border-radius:12px">
+          <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF4A5E" stop-opacity=".35"/><stop offset="1" stop-color="#FF4A5E" stop-opacity="0"/></linearGradient></defs>
+          <g stroke="rgba(255,255,255,.08)" stroke-width="1"><line x1="40" y1="20" x2="40" y2="190"/><line x1="40" y1="190" x2="540" y2="190"/><line x1="40" y1="140" x2="540" y2="140" stroke-dasharray="4 4"/><line x1="40" y1="90" x2="540" y2="90" stroke-dasharray="4 4"/></g>
+          <path d="M40,175 C120,170 180,150 240,120 C320,80 400,55 540,35 L540,190 L40,190 Z" fill="url(#g1)"/>
+          <path d="M40,175 C120,170 180,150 240,120 C320,80 400,55 540,35" fill="none" stroke="#FF4A5E" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M40,185 C140,180 220,165 300,135 C380,105 460,95 540,90" fill="none" stroke="#6E8CFF" stroke-width="2" stroke-dasharray="1 0" stroke-linecap="round"/>
+          <circle cx="380" cy="62" r="5" fill="#fff" stroke="#C8102E" stroke-width="3"/><text x="392" y="58" fill="#fff" font-size="11" font-family="JetBrains Mono">720 PS @ 7,500</text>
+          <text x="48" y="205" fill="rgba(255,255,255,.4)" font-size="10" font-family="JetBrains Mono">2k</text><text x="200" y="205" fill="rgba(255,255,255,.4)" font-size="10" font-family="JetBrains Mono">4k</text><text x="350" y="205" fill="rgba(255,255,255,.4)" font-size="10" font-family="JetBrains Mono">6k</text><text x="500" y="205" fill="rgba(255,255,255,.4)" font-size="10" font-family="JetBrains Mono">8k RPM</text>
+        </svg>
+        <div class="grid grid-cols-3 gap-4 mt-4 text-center">
+          <div class="rounded-xl py-3" style="background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08)"><div class="mono text-[10px] text-white/45">GEARBOX</div><div class="font-bold text-[13px]">PDK 8-SPD</div></div>
+          <div class="rounded-xl py-3" style="background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08)"><div class="mono text-[10px] text-white/45">DIFF</div><div class="font-bold text-[13px]">E-LSD 0–100%</div></div>
+          <div class="rounded-xl py-3" style="background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08)"><div class="mono text-[10px] text-white/45">CO₂ / WLTP</div><div class="font-bold text-[13px]">234 G/KM</div></div>
+        </div>
+      </div>
+      <div class="p-6 md:p-7 flex flex-col justify-between gap-5" style="background:linear-gradient(180deg,#1E2229,#111418);border-left:1px solid rgba(255,255,255,.08)">
+        <div>
+          <div class="flex justify-between items-center"><span class="micro text-white/50">Technical Plate</span><div class="flex gap-1.5"><div class="screw"></div><div class="screw"></div></div></div>
+          <div class="mt-3 rounded-xl p-4 brushed relative overflow-hidden"><div class="brushed-lines"></div><div class="relative z-[5] mono text-[11px] leading-[1.9] text-white/80">VIN <span class="text-white float-right">VPX99-GT-078/99</span><br>ENGINE <span class="text-white float-right">M178 TT 3.8L</span><br>PAINT <span id="platePaint" class="text-white float-right">PX-01 OBSIDIAN</span><br>TOLERANCE <span class="text-white float-right">±0.05 MM</span></div></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <img src="https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=600&auto=format&fit=crop" class="w-[110px] h-[74px] object-cover rounded-lg" style="border:1px solid rgba(255,255,255,.18)" alt="detail">
+          <div class="text-[12px] text-white/60 leading-snug">Laser-measured panel gaps <b class="text-white">3.0 mm ±0.2</b>. Verified on optical bench.</div>
+        </div>
+        <button onclick="toast('Full spec PDF exported — 14 pages')" class="btn-ghost w-full py-3 rounded-xl text-[13px] font-semibold">⬇ Download full spec sheet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 FEATURES -->
+  <div class="micro text-white/40 mt-10 mb-3">04 — Feature Cards · Materials Engineering</div>
+  <div class="grid grid-4 grid gap-5" style="grid-template-columns:1fr 1fr 1fr 1fr">
+    <div class="p-card overflow-hidden contact">
+      <div class="car-img h-[150px]"><img src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?q=80&w=600&auto=format&fit=crop" alt="paint"><div class="absolute bottom-2 left-3 z-[5] chip !text-[9px]" style="background:rgba(0,0,0,.6)">7-Layer Paint</div></div>
+      <div class="p-4"><div class="font-disp font-bold text-[15px]">Liquid-metal clear-coat</div><p class="text-[12.5px] text-white/55 leading-relaxed mt-1.5">Aluminium flakes 12µm aligned for depth. Fresnel gloss 92 GU at 60°.</p><div class="flex items-center justify-between mt-3"><span class="mono text-[11px] text-white/50">92 GU</span><span class="text-[12px] font-semibold">Explore →</span></div></div>
+    </div>
+    <div class="p-card carbon p-4 contact"><div class="carbon-clear"></div><div class="relative z-[5]"><div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style="background:linear-gradient(180deg,#3A4049,#14161A);border:1px solid rgba(255,255,255,.2)"><svg width="20" height="20" fill="none" stroke="white" stroke-width="1.6" viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg></div><div class="font-disp font-bold text-[15px]">Titanium exhaust</div><p class="text-[12.5px] text-white/55 mt-1.5 leading-relaxed">Satin-blasted Ti-6Al-4V. 11.4 kg lighter. Anisotropic grain.</p><div class="divider my-3"></div><div class="flex justify-between mono text-[10px] text-white/50"><span>INCONEL TIPS</span><span>102 dB</span></div></div></div>
+    <div class="p-card overflow-hidden contact">
+      <div class="p-4 pb-0"><div class="micro text-white/50">Image Card · Night</div><div class="font-disp font-extrabold text-[18px] leading-tight mt-1">LED Matrix.<br>1.3M pixels.</div></div>
+      <div class="car-img h-[168px] mt-3 mx-3 mb-3 rounded-xl" style="border:1px solid rgba(255,255,255,.14);border-radius:12px"><img src="https://images.unsplash.com/photo-1553440569-bcc63803a83d?q=80&w=600&auto=format&fit=crop" alt="headlight"></div>
+    </div>
+    <div class="p-card p-4 contact brushed"><div class="brushed-lines"></div><div class="relative z-[5]"><div class="flex justify-between items-center"><span class="micro text-white/60">Forged Wheel</span><span class="chip !text-[9px]">21" · Mg</span></div><div class="my-3 mx-auto w-[120px] h-[120px] rounded-full relative" style="background:conic-gradient(from 0deg,#3A4049,#14161A,#3A4049,#14161A,#3A4049);border:6px solid #0B0D10;outline:1px solid rgba(255,255,255,.2);box-shadow:0 12px 24px rgba(0,0,0,.6), inset 0 2px 6px rgba(255,255,255,.2)"><div class="absolute inset-[28px] rounded-full" style="background:radial-gradient(circle at 35% 30%,#4A5058,#0E1115 70%);border:1px solid rgba(255,255,255,.2)"></div><div class="tick"></div><div class="tick" style="transform:rotate(60deg)"></div><div class="tick" style="transform:rotate(120deg)"></div></div><div class="text-center mono text-[11px] text-white/60">MICHELIN CUP 2 R · 325/30</div><div class="text-center text-[12px] font-semibold mt-1">Center-lock · 84 Nm</div></div></div>
+  </div>
+
+  <!-- 05 ACTIONS + COMPACT -->
+  <div class="micro text-white/40 mt-10 mb-3">05 — Action & Compact Cards · Interaction States</div>
+  <div class="grid grid-3 grid gap-5" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="p-card p-6 contact">
+      <div class="softbox" style="height:30px"></div>
+      <div class="micro text-white/50">Your Build · #078</div>
+      <div class="font-disp font-extrabold text-[20px] mt-1">Obsidian GT-R</div>
+      <div class="mono text-[12px] text-white/50">€231,900 · Delivery Q3 2027</div>
+      <div class="flex gap-2.5 mt-4"><button onclick="toast('Reserved — €5,000 deposit held')" class="btn-primary flex-1 py-3 rounded-xl font-bold text-[13px]">RESERVE NOW</button><button onclick="toast('Test drive scheduled — Nürburgring')" class="btn-ghost flex-1 py-3 rounded-xl font-semibold text-[13px]">Test Drive</button></div>
+      <div class="flex items-center gap-2 mt-3 text-[12px] text-white/50"><span class="dot" style="background:#3DFF88"></span> Free cancellation · 14 days <span class="ml-auto mono text-[11px]">★★★★★ 4.9</span></div>
+    </div>
+    <div class="p-card p-0 contact overflow-hidden">
+      <div class="p-5 pb-3 flex justify-between items-center"><span class="micro text-white/50">Compact · Live Status</span><span class="mono text-[11px] text-emerald-300">● SYSTEMS NOMINAL</span></div>
+      <div class="px-3 pb-3 flex flex-col gap-2">
+        <div class="flex items-center gap-3 p-3 rounded-xl" style="background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08)"><div class="w-9 h-9 rounded-lg flex items-center justify-center text-[16px]" style="background:linear-gradient(180deg,#2A2F37,#14161A);border:1px solid rgba(255,255,255,.12)">◍</div><div class="flex-1"><div class="text-[13px] font-semibold">Oil pressure</div><div class="mono text-[11px] text-white/45">5.2 bar · 112°C</div></div><span class="chip !text-[9px] !py-1" style="color:#7DFFA8;border-color:rgba(61,255,136,.3)">OK</span></div>
+        <div class="flex items-center gap-3 p-3 rounded-xl" style="background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08)"><div class="w-9 h-9 rounded-lg flex items-center justify-center text-[16px]" style="background:linear-gradient(180deg,#2A2F37,#14161A);border:1px solid rgba(255,255,255,.12)">⬢</div><div class="flex-1"><div class="text-[13px] font-semibold">Tire set · Slick Soft</div><div class="mono text-[11px] text-white/45">F 2.1 / R 1.9 bar</div></div><span class="chip !text-[9px] !py-1" style="color:#FFD47D;border-color:rgba(255,190,60,.3)">WARM UP</span></div>
+        <div class="flex items-center gap-3 p-3 rounded-xl opacity-50" style="background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08)"><div class="w-9 h-9 rounded-lg flex items-center justify-center text-[16px]" style="background:#14161A;border:1px solid rgba(255,255,255,.08)">○</div><div class="flex-1"><div class="text-[13px] font-semibold">DRS flap</div><div class="mono text-[11px] text-white/45">Disabled · Pit lane</div></div><span class="chip !text-[9px] !py-1">OFF</span></div>
+      </div>
+    </div>
+    <div class="p-card p-6 contact flex flex-col justify-between" style="background:linear-gradient(180deg,#1E2229 0%, #101318 100%)">
+      <div><div class="flex justify-between"><span class="micro text-white/50">Concierge</span><div class="flex -space-x-2"><img src="https://i.pravatar.cc/64?img=12" class="w-7 h-7 rounded-full" style="border:2px solid #1A1E24"><img src="https://i.pravatar.cc/64?img=32" class="w-7 h-7 rounded-full" style="border:2px solid #1A1E24"><span class="w-7 h-7 rounded-full text-[10px] font-bold flex items-center justify-center" style="background:#fff;color:#000;border:2px solid #1A1E24">24</span></div></div>
+      <div class="font-disp font-bold text-[18px] mt-2 leading-snug">Talk to an Atelier engineer, not a chatbot.</div>
+      <div class="flex gap-2 mt-4 text-[12px]"><span class="chip !normal-case !tracking-normal !font-medium">○ Carbon consult</span><span class="chip !normal-case !tracking-normal !font-medium">○ Trade-in</span></div>
+      </div>
+      <div class="flex gap-2 mt-5"><button onclick="toast('Calling Atelier — connecting...')" class="btn-ghost flex-1 py-2.5 rounded-xl text-[13px] font-semibold">✆ Call</button><button onclick="toast('Message sent — reply in ~4 min')" class="flex-1 py-2.5 rounded-xl text-[13px] font-bold text-black" style="background:linear-gradient(180deg,#fff,#B9C0CA);box-shadow:inset 0 1px 0 #fff,0 8px 18px rgba(0,0,0,.4)">Chat →</button></div>
+    </div>
+  </div>
+
+  <div class="mt-10 p-5 md:p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4" style="background:linear-gradient(180deg,#1C2027,#0E1115);border:1px solid rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 20px 40px rgba(0,0,0,.5)">
+    <div class="mono text-[11px] text-white/45 tracking-wide">VANTA ATELIER · STUTTGART — AFFALTERBACH · QC PASSED <span class="text-emerald-300">✓</span> · ISO 9001 · <span id="clock">00:00:00</span></div>
+    <div class="flex gap-2"><span class="chip !text-[10px]">Aluminium</span><span class="chip !text-[10px]">Titanium</span><span class="chip !text-[10px]">Carbon 2×2</span><span class="chip !text-[10px]" style="border-color:rgba(200,16,46,.4);color:#FF8A98">Rosso Atelier</span></div>
+  </div>
+</main>
+
+<div id="toast"><div class="glass px-5 py-3 rounded-xl text-[13px] font-semibold flex items-center gap-2.5" style="background:rgba(18,21,26,.92)"><span class="w-2 h-2 rounded-full" style="background:#3DFF88;box-shadow:0 0 10px #3DFF88"></span><span id="toastMsg">Saved</span></div></div>
+
+<script>
+function toast(m){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600)}
+function selectCard(el,group,msg){document.querySelectorAll('#'+group+' .selectable').forEach(c=>{c.classList.remove('selected');const b=c.querySelector('.chip');});el.classList.add('selected');if(msg)toast(msg)}
+// paint
+const dots=document.querySelectorAll('.paint-dot');
+dots.forEach(d=>d.addEventListener('click',()=>{
+  dots.forEach(x=>x.classList.remove('active'));d.classList.add('active');
+  document.getElementById('paintName').textContent=d.dataset.name;
+  document.getElementById('paintCode').textContent=d.dataset.code+' · 7-LAYER + CERAMIC';
+  document.getElementById('platePaint').textContent=d.dataset.code+' '+d.dataset.name.toUpperCase().slice(0,8);
+  const wash=document.getElementById('paintWash');
+  wash.style.background=`linear-gradient(115deg, ${d.dataset.c2}88, transparent 60%), radial-gradient(80% 60% at 80% 20%, ${d.dataset.c1}55, transparent 60%)`;
+  toast(d.dataset.name+' applied — booth 04');
+}));
+// counters
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){anim(e.target);io.unobserve(e.target)}}),{threshold:.4});
+document.querySelectorAll('.count').forEach(el=>io.observe(el));
+function anim(el){const to=parseFloat(el.dataset.to),dec=parseInt(el.dataset.dec||0);let s=performance.now(),d=1400;function f(t){let p=Math.min(1,(t-s)/d);p=1-Math.pow(1-p,3);el.textContent=(to*p).toFixed(dec);if(p<1)requestAnimationFrame(f)}requestAnimationFrame(f)}
+// tilt + glare
+const hero=document.getElementById('heroCard');
+hero.addEventListener('mousemove',e=>{
+  const r=hero.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
+  hero.style.transform=`perspective(1200px) rotateY(${(x-.5)*6}deg) rotateX(${(.5-y)*5}deg)`;
+  hero.style.setProperty('--gx',(x*100)+'%');hero.style.setProperty('--gy',(y*100)+'%');
+});
+hero.addEventListener('mouseleave',()=>hero.style.transform='perspective(1200px) rotateY(0) rotateX(0)');
+// rev
+let revving=false;
+function revEngine(){
+  if(revving)return;revving=true;
+  const btn=document.getElementById('startBtn'),val=document.getElementById('rpmVal');
+  btn.textContent='◉ IGNITION...';let rpm=900,t0=performance.now();
+  toast('Titanium exhaust — valves open');
+  function tick(t){
+    let p=(t-t0)/2600;
+    if(p>=1){val.textContent='900';btn.textContent='● HOLD TO START';revving=false;return}
+    rpm=900+Math.sin(p*18)*800+p*6200*Math.sin(p*Math.PI);
+    val.textContent=Math.max(800,Math.round(rpm)).toLocaleString('en-US');
+    requestAnimationFrame(tick)
+  }
+  requestAnimationFrame(tick)
+}
+setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-GB')},1000);
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active')}));
+</script>
+</body>
+</html>
